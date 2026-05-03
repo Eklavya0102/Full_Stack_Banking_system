@@ -1,0 +1,4 @@
+# ninja log v7
+67	4093	7995327612142659	CMakeFiles/banking_server.dir/backend/src/Database.cpp.obj	af2280f8f6ccea5a
+9	18025	7995327611663301	CMakeFiles/banking_server.dir/backend/main.cpp.obj	ccb544a94cae130a
+18027	19496	7995327791751454	banking_server.exe	a4f461a830595a9f
