@@ -42,7 +42,7 @@
         }
     </script>
     <style>
-        body { font-family:'Public Sans',sans-serif; min-height:max(884px,100dvh); }
+        body { font-family:'Public Sans',sans-serif; }
         .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
         .panel { display:none; }
         .panel.active { display:block; }
@@ -75,9 +75,9 @@
     </div>
 </header>
 
-<div class="flex max-w-[1440px] mx-auto min-h-screen">
+<div class="flex max-w-[1440px] mx-auto" style="min-height:calc(100vh - 64px)">
     <!-- Sidebar -->
-    <aside id="sidebar" class="hidden lg:flex flex-col h-auto py-8 px-4 w-72 border-r border-[#E2E8F0] bg-white shrink-0">
+    <aside id="sidebar" class="hidden lg:flex flex-col py-8 px-4 w-72 border-r border-[#E2E8F0] bg-white shrink-0 sticky top-16 self-start h-[calc(100vh-64px)] overflow-y-auto">
         <div class="flex items-center gap-3 mb-10 px-2">
             <div class="w-12 h-12 rounded-lg overflow-hidden border border-outline-variant bg-primary-container flex items-center justify-center text-white font-bold text-lg" id="sidebar-avatar">AD</div>
             <div>
@@ -133,7 +133,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 p-6 lg:p-10 overflow-y-auto">
+    <main class="flex-1 p-6 lg:p-10">
 
         <!-- ── DASHBOARD PANEL ──────────────────────────────────────────── -->
         <div id="panel-dashboard" class="panel active">
@@ -193,7 +193,7 @@
                     <h3 class="font-h3 text-primary">Recent Transactions</h3>
                     <button onclick="showPanel('transactions')" class="text-secondary text-sm font-semibold hover:underline">View All</button>
                 </div>
-                <div id="dashboard-tx-list" class="overflow-x-auto">
+                <div id="dashboard-tx-list" class="overflow-x-auto overflow-y-auto" style="max-height:360px">
                     <div class="p-12 text-center"><span class="material-symbols-outlined text-4xl text-slate-200 block mb-3">receipt_long</span><p class="text-slate-400 text-sm">No transactions yet</p><p class="text-slate-300 text-xs mt-1">Transactions will appear here once staff perform deposits or withdrawals</p></div>
                 </div>
             </section>
@@ -568,7 +568,7 @@ async function loadDashboard() {
     }
     // Load recent transactions
     const tr = await API.getTransactions();
-    if (tr.ok) renderTxTable(tr.data.transactions, 'dashboard-tx-list');
+    if (tr.ok) renderTxTable((tr.data.transactions||[]).slice(0,6), 'dashboard-tx-list');
 }
 
 function renderTxTable(txs, containerId) {

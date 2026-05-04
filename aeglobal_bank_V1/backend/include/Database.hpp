@@ -54,6 +54,7 @@ public:
 
     // Accounts
     std::shared_ptr<Account> getAccountByNumber(const std::string& accountNum);
+    std::shared_ptr<Account> getAccountByCardNumber(const std::string& cardNumber);
     std::vector<Account> searchAccounts(const std::string& query);
     bool updateBalance(const std::string& accountNum, double newBalance);
     bool closeAccount(const std::string& accountNum, const std::string& closedBy);
@@ -68,6 +69,7 @@ public:
 
     // Cards
     std::shared_ptr<Card> getCardByAccount(const std::string& accountNum);
+    std::shared_ptr<Card> getCardByCardNumber(const std::string& cardNumber);
 
     // Stats
     json getDashboardStats();

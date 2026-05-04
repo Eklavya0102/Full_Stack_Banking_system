@@ -1,5 +1,6 @@
 #include "Database.hpp"
 #include <iostream>
+#include <algorithm>
 #include <sstream>
 #include <iomanip>
 #include <random>
@@ -452,16 +453,29 @@ std::vector<Account> Database::searchAccounts(const std::string& query) {
     std::vector<Account> list;
     sqlite3_stmt* stmt;
     std::string pattern = "%" + query + "%";
+    // Also match card numbers without spaces (user may type 16 digits without spaces)
+    std::string stripped = query;
+    stripped.erase(std::remove(stripped.begin(), stripped.end(), ' '), stripped.end());
+    std::string patternStripped = "%" + stripped + "%";
     std::string sql =
-        "SELECT account_number, holder_name, phone, email, id_type, id_number, "
-        "account_type, address, balance, status, created_by, created_at "
-        "FROM accounts WHERE "
-        "holder_name LIKE ? OR phone LIKE ? OR email LIKE ? OR "
-        "id_number LIKE ? OR account_number LIKE ? LIMIT 20";
+        "SELECT DISTINCT a.account_number, a.holder_name, a.phone, a.email, "
+        "a.id_type, a.id_number, a.account_type, a.address, a.balance, "
+        "a.status, a.created_by, a.created_at "
+        "FROM accounts a "
+        "LEFT JOIN cards c ON a.account_number = c.account_number "
+        "WHERE a.holder_name LIKE ? OR a.phone LIKE ? OR a.email LIKE ? OR "
+        "a.id_number LIKE ? OR a.account_number LIKE ? OR "
+        "c.card_number LIKE ? OR REPLACE(c.card_number,' ','') LIKE ? "
+        "LIMIT 20";
     if (sqlite3_prepare_v2(db_, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
         return list;
-    for (int i = 1; i <= 5; i++)
-        sqlite3_bind_text(stmt, i, pattern.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 1, pattern.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, pattern.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, pattern.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 4, pattern.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 5, pattern.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 6, pattern.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 7, patternStripped.c_str(), -1, SQLITE_STATIC);
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         Account acc;
@@ -550,9 +564,11 @@ std::vector<json> Database::getRecentTransactions(int limit) {
     sqlite3_stmt* stmt;
     std::string sql =
         "SELECT t.id, t.account_number, a.holder_name, t.type, "
-        "t.amount, t.balance_after, t.performed_by, t.created_at "
+        "t.amount, t.balance_after, t.performed_by, "
+        "COALESCE(u.name, t.performed_by) as staff_name, t.created_at "
         "FROM transactions t "
         "LEFT JOIN accounts a ON t.account_number = a.account_number "
+        "LEFT JOIN users u ON u.email = t.performed_by "
         "ORDER BY t.id DESC LIMIT ?";
     if (sqlite3_prepare_v2(db_, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
         return list;
@@ -563,14 +579,15 @@ std::vector<json> Database::getRecentTransactions(int limit) {
             return t ? t : "";
         };
         json tx;
-        tx["id"] = sqlite3_column_int(stmt, 0);
+        tx["id"]             = sqlite3_column_int(stmt, 0);
         tx["account_number"] = text(1);
-        tx["holder_name"] = text(2);
-        tx["type"] = text(3);
-        tx["amount"] = sqlite3_column_double(stmt, 4);
-        tx["balance_after"] = sqlite3_column_double(stmt, 5);
-        tx["performed_by"] = text(6);
-        tx["created_at"] = text(7);
+        tx["holder_name"]    = text(2);
+        tx["type"]           = text(3);
+        tx["amount"]         = sqlite3_column_double(stmt, 4);
+        tx["balance_after"]  = sqlite3_column_double(stmt, 5);
+        tx["performed_by"]   = text(6);
+        tx["staff_name"]     = text(7);
+        tx["created_at"]     = text(8);
         list.push_back(tx);
     }
     sqlite3_finalize(stmt);
@@ -583,9 +600,11 @@ std::vector<json> Database::getTransactionsByAccount(
     sqlite3_stmt* stmt;
     std::string sql =
         "SELECT t.id, t.account_number, a.holder_name, t.type, t.amount, "
-        "t.balance_after, t.performed_by, t.created_at "
+        "t.balance_after, t.performed_by, "
+        "COALESCE(u.name, t.performed_by) as staff_name, t.created_at "
         "FROM transactions t "
         "LEFT JOIN accounts a ON t.account_number = a.account_number "
+        "LEFT JOIN users u ON u.email = t.performed_by "
         "WHERE t.account_number=? ORDER BY t.id DESC LIMIT 20";
     if (sqlite3_prepare_v2(db_, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
         return list;
@@ -596,14 +615,15 @@ std::vector<json> Database::getTransactionsByAccount(
             return t ? t : "";
         };
         json tx;
-        tx["id"] = sqlite3_column_int(stmt, 0);
+        tx["id"]             = sqlite3_column_int(stmt, 0);
         tx["account_number"] = text(1);
-        tx["holder_name"] = text(2);
-        tx["type"] = text(3);
-        tx["amount"] = sqlite3_column_double(stmt, 4);
-        tx["balance_after"] = sqlite3_column_double(stmt, 5);
-        tx["performed_by"] = text(6);
-        tx["created_at"] = text(7);
+        tx["holder_name"]    = text(2);
+        tx["type"]           = text(3);
+        tx["amount"]         = sqlite3_column_double(stmt, 4);
+        tx["balance_after"]  = sqlite3_column_double(stmt, 5);
+        tx["performed_by"]   = text(6);
+        tx["staff_name"]     = text(7);
+        tx["created_at"]     = text(8);
         list.push_back(tx);
     }
     sqlite3_finalize(stmt);
@@ -639,6 +659,43 @@ std::shared_ptr<Card> Database::getCardByAccount(const std::string& accountNum) 
     }
     sqlite3_finalize(stmt);
     return card;
+}
+
+std::shared_ptr<Card> Database::getCardByCardNumber(const std::string& cardNumber) {
+    sqlite3_stmt* stmt;
+    // Match with or without spaces
+    std::string sql =
+        "SELECT id, account_number, card_number, expiry_date, cvv, "
+        "card_type, status, issued_at FROM cards "
+        "WHERE card_number=? OR REPLACE(card_number,' ','')=REPLACE(?,' ','')";
+    if (sqlite3_prepare_v2(db_, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
+        return nullptr;
+    sqlite3_bind_text(stmt, 1, cardNumber.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, cardNumber.c_str(), -1, SQLITE_STATIC);
+    std::shared_ptr<Card> card;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        card = std::make_shared<Card>();
+        auto text = [&](int c) -> std::string {
+            const char* t = (const char*)sqlite3_column_text(stmt, c);
+            return t ? t : "";
+        };
+        card->setId(sqlite3_column_int(stmt, 0));
+        card->setAccountNumber(text(1));
+        card->setCardNumber(text(2));
+        card->setExpiryDate(text(3));
+        card->setCvvHash(text(4));
+        card->setCardType(text(5));
+        card->setStatus(text(6));
+        card->setIssuedAt(text(7));
+    }
+    sqlite3_finalize(stmt);
+    return card;
+}
+
+std::shared_ptr<Account> Database::getAccountByCardNumber(const std::string& cardNumber) {
+    auto card = getCardByCardNumber(cardNumber);
+    if (!card) return nullptr;
+    return getAccountByNumber(card->getAccountNumber());
 }
 
 // ─── Stats ───────────────────────────────────────────────────────────────────

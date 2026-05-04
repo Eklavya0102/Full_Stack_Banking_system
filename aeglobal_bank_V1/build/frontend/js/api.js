@@ -90,8 +90,10 @@ const API = {
     openAccountRequest: (data)       => apiCall('POST', '/account/request', data),
     searchAccounts:     (q)          =>
         apiCall('GET', `/account/search?q=${encodeURIComponent(q)}`),
-    getBalance:         (num)        =>
-        apiCall('GET', `/account/balance?account_number=${num}`),
+    getBalance:         (num, byCard = false) =>
+        apiCall('GET', byCard
+            ? `/account/balance?card_number=${encodeURIComponent(num)}`
+            : `/account/balance?account_number=${encodeURIComponent(num)}`),
     closeAccount:       (num)        =>
         apiCall('POST', '/account/close', { account_number: num }),
     getCard:            (num)        =>

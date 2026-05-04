@@ -1,15 +1,6 @@
-# AE Global Bank — Full Stack Banking System
+# AE Global Bank — Banking Management System
 
-C++ backend · cpp-httplib · SQLite3 · Tailwind CSS frontend
-
----
-
-## Why cpp-httplib instead of Crow?
-
-Crow uses ASIO for networking. On Windows, ASIO tries to open a dual-stack
-IPv4+IPv6 socket; if IPv6 is disabled at the OS level the acceptor crashes with
-"local_endpoint: An invalid argument was supplied." cpp-httplib calls WinSock2
-directly — no ASIO, no dual-stack, no crash.
+A full-stack banking web application with an Admin Portal and Staff Portal. Built with a C++ HTTP backend (cpp-httplib + SQLite) and a pure HTML/JS/Tailwind CSS frontend.
 
 ---
 
@@ -19,146 +10,209 @@ directly — no ASIO, no dual-stack, no crash.
 aeglobal_bank/
 ├── backend/
 │   ├── include/
-│   │   ├── User.hpp            Base class (OOP)
-│   │   ├── Admin.hpp           Admin : User
-│   │   ├── Staff.hpp           Staff : User
-│   │   ├── Account.hpp         Account model
-│   │   ├── Card.hpp            Card model
-│   │   ├── AccountRequest.hpp  Request workflow
-│   │   └── Database.hpp        SQLite3 interface
+│   │   ├── Account.hpp          # Account model (with address field)
+│   │   ├── AccountRequest.hpp   # Account request model
+│   │   ├── Admin.hpp            # Admin model
+│   │   ├── Card.hpp             # Card model (XXXX XXXX XXXX XXXX format)
+│   │   ├── Database.hpp         # Database interface declarations
+│   │   ├── Staff.hpp            # Staff model
+│   │   └── User.hpp             # User model
 │   ├── src/
-│   │   └── Database.cpp        Full SQLite3 CRUD
-│   └── main.cpp                HTTP server + all routes
+│   │   └── Database.cpp         # All DB logic (SQLite)
+│   └── main.cpp                 # HTTP server + all API endpoints
 ├── frontend/
-│   ├── js/api.js               Shared fetch wrapper
-│   ├── index.html              Login page
-│   ├── admin/admin_dashboard.html
-│   └── staff/staff_dashboard.html
+│   ├── index.html               # Login page (Admin & Staff)
+│   ├── js/
+│   │   └── api.js               # Shared API client
+│   ├── admin/
+│   │   └── admin_dashboard.html # Admin Portal (single-page app)
+│   └── staff/
+│       └── staff_dashboard.html # Staff Portal (single-page app)
+├── vendor/
+│   └── httplib.h                # cpp-httplib header-only library
 ├── CMakeLists.txt
-├── build.sh                    One-command build
+├── build.sh
 └── README.md
 ```
 
 ---
 
-## Build Instructions (MSYS2 UCRT64)
+## Prerequisites
 
-Open the MSYS2 UCRT64 terminal (not MinGW64, not plain MSYS):
+| Tool | Version | Notes |
+|------|---------|-------|
+| GCC or Clang | 11+ / 13+ | Must support C++17 |
+| CMake | 3.16+ | For CMake build method |
+| SQLite3 | Any recent | libsqlite3-dev on Ubuntu |
+| Browser | Chrome/Firefox/Edge | For the frontend |
 
+### Install dependencies — Ubuntu/Debian
 ```bash
-cd /d/Projects/aeglobal_bank     # adjust path to yours
-bash build.sh
+sudo apt update
+sudo apt install -y build-essential cmake libsqlite3-dev
 ```
 
-The script does everything:
-1. Installs gcc, cmake, ninja, sqlite3, nlohmann-json, cpp-httplib via pacman
-2. Cleans any old build directory
-3. Configures and compiles
-4. Copies runtime DLLs next to the exe
-
-### Manual steps (if you prefer)
-
+### Install dependencies — macOS
 ```bash
-# Install packages
-pacman -S --needed --noconfirm \
-    mingw-w64-ucrt-x86_64-gcc \
-    mingw-w64-ucrt-x86_64-cmake \
-    mingw-w64-ucrt-x86_64-ninja \
-    mingw-w64-ucrt-x86_64-sqlite3 \
-    mingw-w64-ucrt-x86_64-nlohmann-json \
-    mingw-w64-ucrt-x86_64-cpp-httplib
-
-# Build
-rm -rf build
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j$(nproc)
-
-# Copy DLLs
-for dll in libgcc_s_seh-1.dll libstdc++-6.dll libwinpthread-1.dll libsqlite3-0.dll; do
-    cp /ucrt64/bin/$dll build/
-done
+brew install cmake sqlite3
 ```
 
 ---
 
-## Running
+## Build & Run
 
+use MSYS2 UCRT62
+### Option 1 — build.sh (Recommended)
 ```bash
-cd build
-./banking_server.exe
+bash build.sh
 ```
 
-Expected output:
-```
-+========================================+
-|   AE Global Bank Server v1.0           |
-|   Powered by cpp-httplib (WinSock2)    |
-|   http://localhost:8080                |
-+========================================+
-  Press Ctrl+C to stop.
+### Option 2 — CMake manually
+```bash
+mkdir -p build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build . -j$(nproc)
+./aeglobal_bank_server
 ```
 
-Then open `build/frontend/index.html` in your browser.
+### Option 3 — Direct g++ compile
+```bash
+g++ -std=c++17 -O2 \
+    backend/main.cpp backend/src/Database.cpp \
+    -Ibackend/include -Ivendor \
+    -lsqlite3 -lpthread \
+    -o aeglobal_bank_server
+
+./aeglobal_bank_server
+```
+
+The server starts on **port 8080** by default.
+
+---
+
+## Accessing the Application
+
+| URL | Description |
+|-----|-------------|
+| http://localhost:8080/ | Login page |
+| http://localhost:8080/admin/admin_dashboard.html | Admin Portal |
+| http://localhost:8080/staff/staff_dashboard.html | Staff Portal |
 
 ---
 
 ## Default Credentials
 
-| Role  | Email                  | Password |
-|-------|------------------------|----------|
-| Admin | admin@aeglobal.com     | admin123 |
-| Staff | staff@aeglobal.com     | staff123 |
+A default admin is seeded on first run:
 
-Five demo accounts (AE100001–AE100005) and three pending requests are
-pre-seeded in the database on first run.
-
----
-
-## API Routes
-
-| Method | Path                        | Description                     |
-|--------|-----------------------------|---------------------------------|
-| POST   | /api/login                  | Authenticate, returns token     |
-| GET    | /api/stats                  | Dashboard statistics            |
-| GET    | /api/admin/staff            | List all staff                  |
-| POST   | /api/admin/staff            | Create staff account            |
-| GET    | /api/admin/requests         | Account opening requests        |
-| POST   | /api/admin/approve/:id      | Approve request → create account|
-| POST   | /api/admin/reject/:id       | Reject with reason              |
-| POST   | /api/account/request        | Staff submits account request   |
-| GET    | /api/account/search?q=      | Search by name/phone/email/ID   |
-| GET    | /api/account/balance        | Balance + card status           |
-| GET    | /api/account/card           | Card details                    |
-| POST   | /api/transaction/deposit    | Credit account                  |
-| POST   | /api/transaction/withdraw   | Debit account                   |
-| GET    | /api/transactions           | Transaction history             |
-| POST   | /api/account/close          | Close account + block card      |
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@aeglobal.com | admin123 |
+  staff   staff@aeglobal.com   staff123
+Staff accounts are created by the Admin inside the portal.
 
 ---
 
-## OOP Design
+## Features
 
-```
-User  (abstract)
-├── Admin  — canApproveRequests(), canCreateStaff()
-└── Staff  — getBranch(), getCreatedBy()
+### Admin Portal
+- **Dashboard** — Stats, recent 6 transactions (scrollable), quick actions
+- **Create Staff** — Add staff with branch assignment
+- **Staff List** — View all staff, delete staff with confirmation
+- **Approve Account Requests** — Review, approve, or reject pending requests
+- **Search Account** — Search by name, phone, email, ID, account number, or card number
+- **View Balance & Card** — Lookup by account number OR card number; shows full holder details + card
+- **Transactions** — Full history with account filter and staff name column
+- **Close Account** — Verify balance and close account
 
-Account        — deposit(), withdraw(), status management
-Card           — getCardNumberMasked(), isValid()
-AccountRequest — pending → approved / rejected
-Database       — SQLite3 CRUD, seeding, stats
-```
+### Staff Portal
+- **Dashboard** — Quick action tiles, recent 6 transactions (scrollable)
+- **Open Account** — Submit account requests for admin approval
+- **Deposit / Withdrawal** — Perform transactions on active accounts
+- **Search Account** — Search by any field including card number
+- **Check Balance** — Lookup by account number OR card number
+- **Transaction History** — Full history with staff name column
+- **Close Account** — Submit closure requests
 
 ---
 
-## Troubleshooting
+## API Reference
 
-| Problem | Fix |
-|---------|-----|
-| `httplib.h not found` | `pacman -S mingw-w64-ucrt-x86_64-cpp-httplib` |
-| Port 8080 already in use | `netstat -ano \| findstr 8080` in CMD, kill the PID |
-| CORS error in browser | Open via `file://` not a live server, or run `npx serve build/` |
-| DLL not found on double-click | Rerun build.sh — it copies the DLLs |
-| `nlohmann/json.hpp not found` | `pacman -S mingw-w64-ucrt-x86_64-nlohmann-json` |
-| `sqlite3.h not found` | `pacman -S mingw-w64-ucrt-x86_64-sqlite3` |
+### Auth
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/auth/login | Login, returns role + token |
+| POST | /api/auth/logout | Logout |
 
+### Admin
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/admin/staff | Create staff account |
+| GET | /api/admin/staff | List all staff |
+| DELETE | /api/admin/staff/:id | Remove a staff member |
+| GET | /api/admin/stats | Dashboard statistics |
+
+### Account Requests
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/account/request | Submit account opening request |
+| GET | /api/account/requests?filter= | List requests (pending/all) |
+| POST | /api/account/approve | Approve → creates account + card |
+| POST | /api/account/reject | Reject with reason |
+
+### Accounts
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/account/search?q= | Search (name/phone/email/ID/acc no/card no) |
+| GET | /api/account/balance?account_number= | Balance by account number |
+| GET | /api/account/balance?card_number= | Balance by card number |
+| GET | /api/account/card?account_number= | Card details |
+| POST | /api/account/close | Close account |
+
+### Transactions
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/transaction/deposit | Deposit funds |
+| POST | /api/transaction/withdraw | Withdraw funds |
+| GET | /api/transactions?account_number= | Transaction history |
+
+---
+
+## Database
+
+SQLite database file: **banking.db** (auto-created in working directory on first run).
+
+### Tables
+| Table | Description |
+|-------|-------------|
+| users | Admin and staff accounts |
+| accounts | Customer accounts (holder name, phone, email, ID, address, balance) |
+| account_requests | Pending/approved/rejected account opening requests |
+| cards | Debit cards (format: XXXX XXXX XXXX XXXX), linked to accounts |
+| transactions | All deposit/withdrawal records with staff email + resolved name |
+
+> **Important:** Delete banking.db before first run when upgrading from an older version to avoid schema conflicts.
+
+---
+
+## Bug Fixes Applied
+
+| # | Fix | Description |
+|---|-----|-------------|
+| 1 | SQLITE_TRANSIENT | All getter().c_str() bindings changed from SQLITE_STATIC to SQLITE_TRANSIENT — prevents dangling pointer UB that caused null/garbage data saved to DB |
+| 2 | Card number format | Cards generated and stored as XXXX XXXX XXXX XXXX |
+| 3 | Staff delete | Admin can remove staff with confirmation dialog |
+| 4 | Address persisted | Address stored in accounts table on approval |
+| 5 | Full data on approval | All holder fields (phone, email, ID, address) stored and shown everywhere |
+| 6 | Staff name in transactions | performed_by email resolved to full name via JOIN on users table |
+| 7 | Card number search | Search and balance lookup both accept card number input |
+| 8 | Sidebar fixed | Sidebar is now sticky with fixed viewport height — does not stretch |
+| 9 | Dashboard tx limit | Dashboard shows max 6 transactions; section is vertically scrollable |
+
+---
+
+## UI Layout Notes
+
+- **Sidebar**: `sticky top-16 h-[calc(100vh-64px)] overflow-y-auto` — fixed to viewport, scrolls independently
+- **Main content**: `h-[calc(100vh-64px)] overflow-y-auto` — scrolls independently of sidebar
+- **Dashboard tx section**: `max-height: 360px; overflow-y: auto` — capped at ~6 rows, scrollable
+- **Header**: `sticky top-0 z-50` — always visible at top

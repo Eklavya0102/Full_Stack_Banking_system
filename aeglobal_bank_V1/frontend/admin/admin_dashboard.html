@@ -405,11 +405,23 @@
                 <p class="text-on-surface-variant mt-2">Check balance and card validation status</p>
             </header>
             <div class="bg-white rounded-xl border border-[#E2E8F0] p-8 max-w-2xl">
-                <div class="flex gap-4 mb-8">
+                <!-- Search type toggle -->
+                <div class="flex gap-2 mb-4">
+                    <button id="bal-tab-acc" onclick="setBalTab('acc')"
+                        class="px-4 py-2 rounded-lg text-sm font-semibold bg-primary-container text-white">
+                        By Account Number
+                    </button>
+                    <button id="bal-tab-card" onclick="setBalTab('card')"
+                        class="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">
+                        By Card Number
+                    </button>
+                </div>
+                <div class="flex gap-4 mb-6">
                     <input id="bal-account" type="text" placeholder="Enter Account Number (e.g. AE100001)"
-                        class="flex-1 px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:outline-none uppercase">
-                    <button onclick="checkBalance()" class="px-6 py-3 bg-primary-container text-white font-label-sm rounded-lg hover:bg-primary">
-                        Check
+                        class="flex-1 px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:outline-none uppercase"
+                        onkeydown="if(event.key==='Enter') checkBalance()">
+                    <button onclick="checkBalance()" class="px-6 py-3 bg-primary-container text-white font-label-sm rounded-lg hover:bg-primary flex items-center gap-2">
+                        <span class="material-symbols-outlined text-base">search</span> Check
                     </button>
                 </div>
                 <div id="balance-result"></div>
@@ -579,6 +591,7 @@ function renderTxTable(txs, containerId) {
                 <th class="px-6 py-3">Type</th>
                 <th class="px-6 py-3 text-right">Amount</th>
                 <th class="px-6 py-3 text-right">Balance After</th>
+                <th class="px-6 py-3">Staff</th>
                 <th class="px-6 py-3">Date</th>
             </tr>
         </thead>
@@ -590,6 +603,12 @@ function renderTxTable(txs, containerId) {
                 <td class="px-6 py-4 text-sm font-bold ${typeStyle[tx.type]||''} capitalize">${tx.type.replace('_',' ')}</td>
                 <td class="px-6 py-4 text-right text-sm font-bold ${typeStyle[tx.type]||''}">${formatCurrency(tx.amount)}</td>
                 <td class="px-6 py-4 text-right text-sm font-mono">${formatCurrency(tx.balance_after)}</td>
+                <td class="px-6 py-4 text-sm text-slate-600">
+                    <span class="flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm text-slate-400">badge</span>
+                        ${tx.staff_name || tx.performed_by || '—'}
+                    </span>
+                </td>
                 <td class="px-6 py-4 text-xs text-slate-400">${tx.created_at}</td>
             </tr>`).join('')}
         </tbody>
@@ -878,14 +897,31 @@ document.getElementById('withdraw-form').addEventListener('submit', async (e) =>
 
 // ─── Balance / Card ────────────────────────────────────────────────────────
 
-document.getElementById('bal-account').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') checkBalance();
-});
+let balSearchByCard = false;
+function setBalTab(tab) {
+    balSearchByCard = (tab === 'card');
+    const inp = document.getElementById('bal-account');
+    const accBtn  = document.getElementById('bal-tab-acc');
+    const cardBtn = document.getElementById('bal-tab-card');
+    if (balSearchByCard) {
+        inp.placeholder = 'Enter 16-digit Card Number (e.g. 1234 5678 9012 3456)';
+        inp.classList.remove('uppercase');
+        cardBtn.className = 'px-4 py-2 rounded-lg text-sm font-semibold bg-primary-container text-white';
+        accBtn.className  = 'px-4 py-2 rounded-lg text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200';
+    } else {
+        inp.placeholder = 'Enter Account Number (e.g. AE100001)';
+        inp.classList.add('uppercase');
+        accBtn.className  = 'px-4 py-2 rounded-lg text-sm font-semibold bg-primary-container text-white';
+        cardBtn.className = 'px-4 py-2 rounded-lg text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200';
+    }
+    document.getElementById('balance-result').innerHTML = '';
+}
 
 async function checkBalance() {
-    const accNum = document.getElementById('bal-account').value.trim().toUpperCase();
-    if (!accNum) { showToast('Enter an account number', 'warn'); return; }
-    const r = await API.getBalance(accNum);
+    const val = document.getElementById('bal-account').value.trim();
+    const accNum = balSearchByCard ? val : val.toUpperCase();
+    if (!accNum) { showToast(balSearchByCard ? 'Enter a card number' : 'Enter an account number', 'warn'); return; }
+    const r = await API.getBalance(accNum, balSearchByCard);
     const el = document.getElementById('balance-result');
     if (!r.ok) {
         el.innerHTML = `<div class="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">❌ ${r.data.error}</div>`;

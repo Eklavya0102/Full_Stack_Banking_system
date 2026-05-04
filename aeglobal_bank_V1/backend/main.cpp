@@ -225,9 +225,16 @@ int main() {
     // ── GET /api/account/balance ──────────────────────────────────────────────
     svr.Get("/api/account/balance",
     [](const httplib::Request& req, httplib::Response& res) {
-        std::string num = param(req,"account_number");
-        if (num.empty()) { bad(res,400,"Account number required"); return; }
-        auto acc = db->getAccountByNumber(num);
+        std::string num     = param(req,"account_number");
+        std::string cardNum = param(req,"card_number");
+        std::shared_ptr<Account> acc;
+        if (!num.empty()) {
+            acc = db->getAccountByNumber(num);
+        } else if (!cardNum.empty()) {
+            acc = db->getAccountByCardNumber(cardNum);
+        } else {
+            bad(res,400,"Account number or card number required"); return;
+        }
         if (!acc) { bad(res,404,"Account not found"); return; }
         auto card = db->getCardByAccount(acc->getAccountNumber());
         json r;
@@ -243,7 +250,7 @@ int main() {
         r["account"]["status"]         = acc->getStatus();
         r["account"]["account_type"]   = acc->getAccountType();
         if (card) {
-            r["card"]["card_number"]    = card->getCardNumber();
+            r["card"]["card_number"]   = card->getCardNumber();
             r["card"]["masked_number"] = card->getCardNumberMasked();
             r["card"]["expiry"]        = card->getExpiryDate();
             r["card"]["type"]          = card->getCardType();
