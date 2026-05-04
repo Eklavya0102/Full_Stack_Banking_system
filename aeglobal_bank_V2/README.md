@@ -181,6 +181,7 @@ Staff accounts are created by the Admin inside the portal.
 
 SQLite database file: **banking.db** (auto-created in working directory on first run).
 
+<<<<<<< HEAD
 ### Tables
 | Table | Description |
 |-------|-------------|
@@ -216,3 +217,19 @@ SQLite database file: **banking.db** (auto-created in working directory on first
 - **Main content**: `h-[calc(100vh-64px)] overflow-y-auto` — scrolls independently of sidebar
 - **Dashboard tx section**: `max-height: 360px; overflow-y: auto` — capped at ~6 rows, scrollable
 - **Header**: `sticky top-0 z-50` — always visible at top
+=======
+
+LICENSE:
+
+MIT License
+
+Copyright (c) [year] [your name]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software...
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND...
+>>>>>>> f0ca142d5778bd7be38c0b03a3e19d6901464f17
