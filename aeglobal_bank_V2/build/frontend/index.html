@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>AE Global Bank — Login</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#43474d","on-surface": "#1b1c1c",
+                        "surface-container": "#efeded","error-container": "#ffdad6",
+                        "tertiary-fixed": "#e1e3e4","on-error-container": "#93000a",
+                        "secondary-container": "#fed488","primary-container": "#021c36",
+                        "inverse-surface": "#303030","primary-fixed-dim": "#b1c8e9",
+                        "on-tertiary-fixed": "#191c1d","primary": "#000000",
+                        "on-secondary": "#ffffff","secondary-fixed": "#ffdea5",
+                        "error": "#ba1a1a","on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#f2f0f0","on-primary-container": "#6f85a3",
+                        "primary-fixed": "#d2e4ff","on-tertiary-container": "#828485",
+                        "on-primary-fixed": "#021c36","background": "#fbf9f8",
+                        "on-primary": "#ffffff","on-secondary-container": "#785a1a",
+                        "outline": "#74777e","on-secondary-fixed": "#261900",
+                        "surface": "#fbf9f8","on-primary-fixed-variant": "#324863",
+                        "on-secondary-fixed-variant": "#5d4201","tertiary": "#000000",
+                        "surface-container-lowest": "#ffffff","secondary": "#775a19",
+                        "surface-tint": "#4a607c","on-error": "#ffffff",
+                        "surface-variant": "#e4e2e2","tertiary-fixed-dim": "#c5c7c8",
+                        "on-tertiary-fixed-variant": "#454748","secondary-fixed-dim": "#e9c176",
+                        "surface-container-highest": "#e4e2e2","surface-container-high": "#eae8e7",
+                        "surface-bright": "#fbf9f8","outline-variant": "#c4c6ce",
+                        "surface-container-low": "#f5f3f3","tertiary-container": "#191c1d",
+                        "inverse-primary": "#b1c8e9","on-background": "#1b1c1c","surface-dim": "#dbd9d9"
+                    },
+                    "borderRadius": { "DEFAULT": "0.125rem","lg": "0.25rem","xl": "0.5rem","full": "0.75rem" },
+                    "fontFamily": {
+                        "headline-md": ["Noto Serif"],"body-md": ["Manrope"],"headline-sm": ["Noto Serif"],
+                        "body-sm": ["Manrope"],"label-caps": ["Manrope"],"body-lg": ["Manrope"],"display-lg": ["Noto Serif"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["32px", {"lineHeight":"1.3","letterSpacing":"-0.01em","fontWeight":"500"}],
+                        "body-md": ["16px", {"lineHeight":"1.6","letterSpacing":"0","fontWeight":"400"}],
+                        "headline-sm": ["24px", {"lineHeight":"1.4","letterSpacing":"0","fontWeight":"500"}],
+                        "body-sm": ["14px", {"lineHeight":"1.5","letterSpacing":"0","fontWeight":"400"}],
+                        "label-caps": ["12px", {"lineHeight":"1","letterSpacing":"0.1em","fontWeight":"700"}],
+                        "body-lg": ["18px", {"lineHeight":"1.6","letterSpacing":"0.01em","fontWeight":"400"}],
+                        "display-lg": ["48px", {"lineHeight":"1.2","letterSpacing":"-0.02em","fontWeight":"600"}]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; }
+        .institutional-shadow { box-shadow: 0 30px 60px -12px rgba(2,28,54,0.05); }
+        .input-underlined { border:none; border-bottom:1px solid #c4c6ce; border-radius:0; padding-left:0; padding-right:0; background:transparent; }
+        .input-underlined:focus { outline:none; box-shadow:none; border-bottom:1px solid #000; }
+        body { min-height: max(884px,100dvh); }
+        .role-btn.selected { background:white; box-shadow:0 1px 4px rgba(0,0,0,0.12); color:#1b1c1c; }
+        .role-btn:not(.selected) { color:#74777e; }
+        #error-banner { display:none; }
+        .spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,0.4); border-top-color:white; border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; margin-right:6px; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+    </style>
+    <script src="js/api.js"></script>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-secondary-fixed">
+
+    <header class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100">
+        <div class="max-w-[1440px] mx-auto px-8 md:px-16 h-20 flex items-center justify-center">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-2xl">account_balance</span>
+                <h1 class="text-lg font-headline-md tracking-[0.3em] text-slate-900 uppercase">AE GLOBAL BANK</h1>
+            </div>
+        </div>
+    </header>
+
+    <main class="min-h-screen flex items-stretch">
+        <!-- Left branding -->
+        <section class="hidden lg:flex w-1/2 relative overflow-hidden">
+            <img class="absolute inset-0 w-full h-full object-cover"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIvu3tYuKg4aFAxaGQlKgx5_VmKvXEHrqg6zQLgG0gEM3EnHCl74powHIhByPkWuwnTBSzrqnN0msBB5EwSvAUuCK3gvyR_fx2YsQHbpkLf_Upd6uDKZ4PftEAb5r_8EF5tKafwk4oOeRnj6LHogwmcHQKxquNyxm8HXtv7rUQPRRgB7ubTIz3bCJJwICRks88961TgZOILCX5lg7jTAaUNq9rl-ccgKvq-w1BUhrEVlGZjxVPO8lOU9RTm3AeWknC2hyc13ueAn0u">
+            <div class="absolute inset-0 bg-primary-container/20 backdrop-brightness-75"></div>
+            <div class="relative z-10 flex flex-col justify-end p-20 text-white">
+                <h2 class="font-display-lg text-display-lg mb-4">Precision in every <br>transaction.</h2>
+                <p class="font-body-lg text-body-lg max-w-md opacity-80">Empowering institutional leadership with secure, real-time capital management solutions.</p>
+            </div>
+        </section>
+
+        <!-- Right: Login Form -->
+        <section class="w-full lg:w-1/2 flex flex-col items-center justify-center px-6 md:px-20 pt-20">
+            <div class="w-full max-w-[440px]">
+                <div class="mb-12">
+                    <h3 class="font-headline-md text-headline-md mb-2">Welcome Back</h3>
+                    <p class="text-on-surface-variant font-body-md">Access your secure portal</p>
+                </div>
+
+                <!-- Role Selector -->
+                <div class="bg-surface-container-low p-1 mb-10 flex rounded-lg" id="role-selector">
+                    <button id="btn-admin" class="role-btn selected flex-1 py-3 px-6 text-label-caps font-label-caps tracking-widest transition-all duration-300" onclick="selectRole('admin')">ADMIN</button>
+                    <button id="btn-staff" class="role-btn flex-1 py-3 px-6 text-label-caps font-label-caps tracking-widest hover:text-on-surface transition-all duration-300" onclick="selectRole('staff')">STAFF</button>
+                </div>
+
+                <!-- Error Banner -->
+                <div id="error-banner" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-body-sm flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">error</span>
+                    <span id="error-msg"></span>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form" class="space-y-10">
+                    <div class="relative group">
+                        <label class="block text-label-caps font-label-caps text-on-surface-variant mb-1 group-focus-within:text-primary transition-colors" for="email">EMAIL ADDRESS</label>
+                        <input class="w-full input-underlined py-3 font-body-md" id="email" name="email" placeholder="name@aeglobal.com" type="email" required>
+                    </div>
+                    <div class="relative group">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-label-caps font-label-caps text-on-surface-variant group-focus-within:text-primary transition-colors" for="password">PASSWORD</label>
+                        </div>
+                        <input class="w-full input-underlined py-3 font-body-md" id="password" name="password" placeholder="••••••••" type="password" required>
+                    </div>
+                    <div class="pt-6">
+                        <button id="sign-in-btn" class="w-full bg-primary-container text-white py-5 font-label-caps tracking-[0.2em] hover:bg-black transition-all duration-500 institutional-shadow" type="submit">
+                            SIGN IN
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Contact admin for credentials -->
+                <div class="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-700 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-blue-400" style="font-size:16px">info</span>
+                    Contact your administrator if you do not have login credentials.
+                </div>
+
+                <div class="mt-8 pt-8 border-t border-surface-variant flex items-center gap-4">
+                    <span class="material-symbols-outlined text-secondary">verified_user</span>
+                    <p class="text-body-sm font-body-sm text-on-surface-variant italic">Secured by AE multi-factor institutional encryption.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="w-full py-12 bg-slate-50 border-t border-slate-200">
+        <div class="max-w-[1440px] mx-auto px-16 flex flex-col md:flex-row justify-between items-center gap-6">
+            <p class="font-serif text-xs tracking-tight text-slate-500">© 2024 AE Global Bank. All rights reserved.</p>
+            <div class="flex gap-8">
+                <a class="font-serif text-xs tracking-tight text-slate-500 hover:text-slate-900 underline underline-offset-4" href="#">Privacy Policy</a>
+                <a class="font-serif text-xs tracking-tight text-slate-500 hover:text-slate-900 underline underline-offset-4" href="#">Security</a>
+                <a class="font-serif text-xs tracking-tight text-slate-500 hover:text-slate-900 underline underline-offset-4" href="#">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let selectedRole = 'admin';
+
+        // Redirect if already logged in
+        const existingSession = localStorage.getItem('ae_session');
+        if (existingSession) {
+            try {
+                const s = JSON.parse(existingSession);
+                if (s && s.user && s.user.role) {
+                    if (s.user.role === 'admin') window.location.href = 'admin/admin_dashboard.html';
+                    else window.location.href = 'staff/staff_dashboard.html';
+                }
+            } catch(e) { localStorage.removeItem('ae_session'); }
+        }
+
+        function selectRole(role) {
+            selectedRole = role;
+            document.getElementById('btn-admin').classList.toggle('selected', role === 'admin');
+            document.getElementById('btn-staff').classList.toggle('selected', role === 'staff');
+            hideError();
+        }
+
+        function showError(msg) {
+            const banner = document.getElementById('error-banner');
+            document.getElementById('error-msg').textContent = msg;
+            banner.style.display = 'flex';
+        }
+
+        function hideError() {
+            document.getElementById('error-banner').style.display = 'none';
+        }
+
+        function setLoading(loading) {
+            const btn = document.getElementById('sign-in-btn');
+            if (loading) {
+                btn.innerHTML = '<span class="spinner"></span>SIGNING IN...';
+                btn.disabled = true;
+            } else {
+                btn.innerHTML = 'SIGN IN';
+                btn.disabled = false;
+            }
+        }
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError();
+
+            const email    = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (!email || !password) {
+                showError('Please enter your email and password.');
+                return;
+            }
+
+            setLoading(true);
+            try {
+                const r = await API.login(email, password, selectedRole);
+
+                if (r.ok && r.data.success) {
+                    localStorage.setItem('ae_session', JSON.stringify({
+                        token: r.data.token,
+                        user:  r.data.user
+                    }));
+                    if (r.data.user.role === 'admin') {
+                        window.location.href = 'admin/admin_dashboard.html';
+                    } else {
+                        window.location.href = 'staff/staff_dashboard.html';
+                    }
+                } else {
+                    showError(r.data.error || 'Invalid credentials. Please try again.');
+                }
+            } catch(err) {
+                showError('Cannot connect to server. Make sure banking_server.exe is running.');
+            } finally {
+                setLoading(false);
+            }
+        });
+    </script>
+</body>
+</html>

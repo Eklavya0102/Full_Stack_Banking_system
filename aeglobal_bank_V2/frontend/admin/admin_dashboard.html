@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>AE Global Bank — Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="../js/api.js"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: { extend: {
+                "colors": {
+                    "secondary-container":"#fed488","primary-fixed-dim":"#adc7f8","tertiary":"#0c0e0f",
+                    "on-tertiary-container":"#898b8c","error-container":"#ffdad6","surface-container-highest":"#e2e2e5",
+                    "error":"#ba1a1a","outline-variant":"#c4c6d0","background":"#f9f9fc",
+                    "tertiary-container":"#212425","primary":"#000e24","primary-fixed":"#d6e3ff",
+                    "secondary-fixed":"#ffdea5","on-primary-fixed":"#001b3d","on-primary-container":"#718bb9",
+                    "on-primary":"#ffffff","surface-container-high":"#e8e8ea","on-surface-variant":"#43474e",
+                    "on-background":"#1a1c1e","secondary":"#775a19","on-surface":"#1a1c1e",
+                    "surface-bright":"#f9f9fc","surface-variant":"#e2e2e5","on-error-container":"#93000a",
+                    "primary-container":"#00234b","surface-tint":"#455f8a","on-secondary-fixed":"#261900",
+                    "on-error":"#ffffff","on-secondary-container":"#785a1a","on-tertiary":"#ffffff",
+                    "surface-container":"#eeeef0","surface-container-lowest":"#ffffff","surface":"#f9f9fc",
+                    "secondary-fixed-dim":"#e9c176","surface-dim":"#dadadc","outline":"#74777f",
+                    "on-secondary":"#ffffff","surface-container-low":"#f3f3f6"
+                },
+                "borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},
+                "fontFamily":{"body-lg":["Public Sans"],"body-md":["Public Sans"],"data-mono":["Public Sans"],"h3":["Public Sans"],"h2":["Public Sans"],"h1":["Public Sans"],"label-sm":["Public Sans"]},
+                "fontSize":{
+                    "body-lg":["18px",{"lineHeight":"1.6","letterSpacing":"0","fontWeight":"400"}],
+                    "body-md":["16px",{"lineHeight":"1.5","letterSpacing":"0","fontWeight":"400"}],
+                    "data-mono":["15px",{"lineHeight":"1.4","letterSpacing":"-0.01em","fontWeight":"500"}],
+                    "h3":["24px",{"lineHeight":"1.3","letterSpacing":"0","fontWeight":"600"}],
+                    "h2":["32px",{"lineHeight":"1.25","letterSpacing":"-0.01em","fontWeight":"600"}],
+                    "h1":["40px",{"lineHeight":"1.2","letterSpacing":"-0.02em","fontWeight":"700"}],
+                    "label-sm":["14px",{"lineHeight":"1.4","letterSpacing":"0.02em","fontWeight":"600"}]
+                }
+            }}
+        }
+    </script>
+    <style>
+        body { font-family:'Public Sans',sans-serif; min-height:max(884px,100dvh); }
+        .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+        .panel { display:none; }
+        .panel.active { display:block; }
+        .nav-item { display:flex; align-items:center; gap:12px; padding:12px; border-radius:8px; cursor:pointer; transition:all 0.2s; color:#475569; font-size:14px; }
+        .nav-item:hover { background:#f1f5f9; }
+        .nav-item.active { background:#f1f5f9; color:#00234b; font-weight:700; border-left:4px solid #00234b; padding-left:8px; }
+        .spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,0.4); border-top-color:white; border-radius:50%; animation:spin 0.7s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; }
+        .modal-overlay.open { display:flex; }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased">
+
+<!-- TopAppBar -->
+<header class="bg-white border-b border-[#E2E8F0] sticky top-0 z-50">
+    <div class="flex justify-between items-center w-full px-6 h-16 max-w-[1440px] mx-auto">
+        <div class="flex items-center gap-4">
+            <span class="material-symbols-outlined text-[#00234B] cursor-pointer lg:hidden" onclick="toggleSidebar()">menu</span>
+            <span class="text-xl font-black text-[#00234B] tracking-widest">AE Global Bank</span>
+        </div>
+        <nav class="hidden md:flex gap-8">
+            <a class="text-[#00234B] border-b-2 border-[#00234B] font-bold tracking-tight py-5" href="#">Admin Portal</a>
+        </nav>
+        <div class="flex items-center gap-4">
+            <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white text-xs font-bold" id="user-avatar">AD</div>
+            <span class="hidden md:block text-sm font-semibold text-[#00234B]" id="user-name">Admin</span>
+            <button onclick="logout()" class="text-sm text-red-500 hover:text-red-700 font-semibold ml-2 hidden md:block">Logout</button>
+        </div>
+    </div>
+</header>
+
+<div class="flex max-w-[1440px] mx-auto min-h-screen">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="hidden lg:flex flex-col h-auto py-8 px-4 w-72 border-r border-[#E2E8F0] bg-white shrink-0">
+        <div class="flex items-center gap-3 mb-10 px-2">
+            <div class="w-12 h-12 rounded-lg overflow-hidden border border-outline-variant bg-primary-container flex items-center justify-center text-white font-bold text-lg" id="sidebar-avatar">AD</div>
+            <div>
+                <p class="text-[#00234B] font-bold text-sm" id="sidebar-name">Administrator</p>
+                <p class="text-slate-500 text-xs uppercase tracking-tighter">Global Oversight</p>
+            </div>
+        </div>
+        <nav class="space-y-1">
+            <div class="nav-item active" onclick="showPanel('dashboard')" id="nav-dashboard">
+                <span class="material-symbols-outlined">dashboard</span><span>Dashboard</span>
+            </div>
+            <div class="nav-item" onclick="showPanel('create-staff')" id="nav-create-staff">
+                <span class="material-symbols-outlined">person_add</span><span>Create Staff</span>
+            </div>
+            <div class="nav-item" onclick="showPanel('requests')" id="nav-requests">
+                <span class="material-symbols-outlined">pending_actions</span>
+                <span>Account Requests</span>
+                <span class="ml-auto text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold" id="pending-count">0</span>
+            </div>
+            <div class="nav-item" onclick="showPanel('staff-list')" id="nav-staff-list">
+                <span class="material-symbols-outlined">group</span><span>Staff List</span>
+            </div>
+            <div class="nav-item" onclick="showPanel('search')" id="nav-search">
+                <span class="material-symbols-outlined">search</span><span>Search Account</span>
+            </div>
+            <div class="nav-item" onclick="showPanel('deposit')" id="nav-deposit">
+                <span class="material-symbols-outlined">add_circle</span><span>Deposit</span>
+            </div>
+            <div class="nav-item" onclick="showPanel('withdraw')" id="nav-withdraw">
+                <span class="material-symbols-outlined">remove_circle</span><span>Withdraw</span>
+            </div>
+            <div class="nav-item" onclick="showPanel('balance')" id="nav-balance">
+                <span class="material-symbols-outlined">account_balance_wallet</span><span>View Balance</span>
+            </div>
+            <div class="nav-item" onclick="showPanel('transactions')" id="nav-transactions">
+                <span class="material-symbols-outlined">receipt_long</span><span>Transactions</span>
+            </div>
+            <div class="nav-item" onclick="showPanel('close-account')" id="nav-close-account">
+                <span class="material-symbols-outlined text-red-500">person_remove</span>
+                <span class="text-red-500">Close Account</span>
+            </div>
+        </nav>
+        <div class="mt-auto p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <p class="text-label-sm font-label-sm text-primary mb-2">System Status</p>
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span class="text-xs text-on-surface-variant">All Systems Active</span>
+            </div>
+        </div>
+        <button onclick="logout()" class="mt-4 w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 transition-colors rounded-lg">
+            <span class="material-symbols-outlined">logout</span><span class="text-sm font-bold">Sign Out</span>
+        </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6 lg:p-10 overflow-y-auto">
+
+        <!-- ── DASHBOARD PANEL ──────────────────────────────────────────── -->
+        <div id="panel-dashboard" class="panel active">
+            <header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 class="font-h1 text-h1 text-primary">Strategic Overview</h1>
+                    <p class="font-body-md text-on-surface-variant mt-2">Admin Control Centre</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="showPanel('create-staff')" class="px-6 py-2.5 bg-primary text-white text-label-sm font-label-sm rounded-lg flex items-center gap-2 hover:opacity-90">
+                        <span class="material-symbols-outlined text-lg">person_add</span> Add New Staff
+                    </button>
+                    <button onclick="showPanel('requests')" class="px-6 py-2.5 border-2 border-secondary text-secondary text-label-sm font-label-sm rounded-lg hover:bg-secondary/5">
+                        View Requests
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Grid -->
+            <section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8" id="stats-grid">
+                <div class="bg-white p-6 rounded-xl border border-[#E2E8F0] hover:shadow-lg transition-shadow">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 bg-slate-50 rounded-lg"><span class="material-symbols-outlined text-[#00234B]">swap_horiz</span></div>
+                        <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">LIVE</span>
+                    </div>
+                    <p class="text-on-surface-variant text-label-sm font-label-sm uppercase tracking-wider">Total Transactions</p>
+                    <h3 class="text-h2 font-h2 text-primary mt-1" id="stat-tx">—</h3>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-[#E2E8F0] hover:shadow-lg transition-shadow">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 bg-emerald-50 rounded-lg"><span class="material-symbols-outlined text-emerald-700">account_balance_wallet</span></div>
+                        <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">LIVE</span>
+                    </div>
+                    <p class="text-on-surface-variant text-label-sm font-label-sm uppercase tracking-wider">Total Deposits</p>
+                    <h3 class="text-h2 font-h2 text-primary mt-1" id="stat-dep">—</h3>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-[#E2E8F0] hover:shadow-lg transition-shadow">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 bg-rose-50 rounded-lg"><span class="material-symbols-outlined text-rose-700">outbox</span></div>
+                    </div>
+                    <p class="text-on-surface-variant text-label-sm font-label-sm uppercase tracking-wider">Total Withdrawals</p>
+                    <h3 class="text-h2 font-h2 text-primary mt-1" id="stat-wd">—</h3>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-[#E2E8F0] hover:shadow-lg transition-shadow">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 bg-blue-50 rounded-lg"><span class="material-symbols-outlined text-blue-700">pending_actions</span></div>
+                        <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded" id="stat-pending-badge">0 PENDING</span>
+                    </div>
+                    <p class="text-on-surface-variant text-label-sm font-label-sm uppercase tracking-wider">Pending Requests</p>
+                    <h3 class="text-h2 font-h2 text-primary mt-1" id="stat-req">—</h3>
+                </div>
+            </section>
+
+            <!-- Recent Transactions -->
+            <section class="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden mb-8">
+                <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="font-h3 text-primary">Recent Transactions</h3>
+                    <button onclick="showPanel('transactions')" class="text-secondary text-sm font-semibold hover:underline">View All</button>
+                </div>
+                <div id="dashboard-tx-list" class="overflow-x-auto">
+                    <div class="p-12 text-center"><span class="material-symbols-outlined text-4xl text-slate-200 block mb-3">receipt_long</span><p class="text-slate-400 text-sm">No transactions yet</p><p class="text-slate-300 text-xs mt-1">Transactions will appear here once staff perform deposits or withdrawals</p></div>
+                </div>
+            </section>
+
+            <!-- Footer banner -->
+            <footer class="bg-[#00234B] text-white p-8 rounded-2xl flex flex-col md:flex-row items-center gap-8">
+                <div class="flex-1">
+                    <h2 class="text-h3 font-h3 mb-2">Institutional Integrity Program</h2>
+                    <p class="text-on-primary-container font-body-md opacity-90">Ensuring highest standards of financial ethics. Staff members are required to complete the Q3 Compliance Audit by Friday.</p>
+                </div>
+                <button class="px-8 py-3 bg-secondary-container text-on-secondary-fixed font-bold rounded-lg hover:brightness-110 transition-all">
+                    Access Training Portal
+                </button>
+            </footer>
+        </div>
+
+        <!-- ── CREATE STAFF PANEL ───────────────────────────────────────── -->
+        <div id="panel-create-staff" class="panel">
+            <header class="mb-8">
+                <h1 class="font-h1 text-h1 text-primary">Create Staff Account</h1>
+                <p class="text-on-surface-variant mt-2">Add a new staff member to the system</p>
+            </header>
+            <div class="bg-white rounded-xl border border-[#E2E8F0] p-8 max-w-2xl">
+                <form id="create-staff-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-label-sm font-label-sm text-on-surface-variant mb-2">FULL NAME *</label>
+                            <input id="sf-name" type="text" required placeholder="e.g. John Smith"
+                                class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-label-sm font-label-sm text-on-surface-variant mb-2">EMAIL ADDRESS *</label>
+                            <input id="sf-email" type="email" required placeholder="staff@aeglobal.com"
+                                class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-label-sm font-label-sm text-on-surface-variant mb-2">PASSWORD *</label>
+                            <input id="sf-password" type="password" required placeholder="Min. 6 characters"
+                                class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-label-sm font-label-sm text-on-surface-variant mb-2">BRANCH</label>
+                            <select id="sf-branch" class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:outline-none">
+                                <option value="">Select Branch</option>
+                                <option>Branch-01 (Main)</option>
+                                <option>Branch-02 (North)</option>
+                                <option>Branch-03 (South)</option>
+                                <option>Branch-04 (East)</option>
+                                <option>Branch-05 (West)</option>
+                                <option>HQ</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="staff-form-error" class="hidden p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"></div>
+                    <div class="flex gap-4 pt-2">
+                        <button type="submit" id="create-staff-btn"
+                            class="px-8 py-3 bg-primary-container text-white font-label-sm rounded-lg hover:bg-primary transition-colors flex items-center gap-2">
+                            <span class="material-symbols-outlined text-lg">person_add</span> Create Staff Account
+                        </button>
+                        <button type="button" onclick="showPanel('dashboard')"
+                            class="px-8 py-3 border-2 border-slate-200 text-slate-600 font-label-sm rounded-lg hover:bg-slate-50">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ── ACCOUNT REQUESTS PANEL ──────────────────────────────────── -->
+        <div id="panel-requests" class="panel">
+            <header class="mb-8 flex items-center justify-between">
+                <div>
+                    <h1 class="font-h1 text-h1 text-primary">Account Requests</h1>
+                    <p class="text-on-surface-variant mt-2">Review and approve or reject pending account opening requests</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="loadRequests('pending')" id="filter-pending"
+                        class="px-4 py-2 bg-primary-container text-white text-sm font-semibold rounded-lg">Pending</button>
+                    <button onclick="loadRequests('all')" id="filter-all"
+                        class="px-4 py-2 border border-slate-200 text-slate-600 text-sm font-semibold rounded-lg hover:bg-slate-50">All</button>
+                    <button onclick="loadRequests('pending')" class="px-4 py-2 border border-slate-200 text-slate-600 text-sm rounded-lg hover:bg-slate-50">
+                        <span class="material-symbols-outlined text-sm align-middle">refresh</span>
+                    </button>
+                </div>
+            </header>
+            <div id="requests-list" class="space-y-4">
+                <p class="text-slate-400">Loading requests...</p>
+            </div>
+        </div>
+
+        <!-- ── STAFF LIST PANEL ─────────────────────────────────────────── -->
+        <div id="panel-staff-list" class="panel">
+            <header class="mb-8 flex items-center justify-between">
+                <div>
+                    <h1 class="font-h1 text-h1 text-primary">Staff Directory</h1>
+                    <p class="text-on-surface-variant mt-2">All staff members in the system</p>
+                </div>
+                <button onclick="showPanel('create-staff')" class="px-6 py-2.5 bg-primary text-white text-label-sm font-label-sm rounded-lg flex items-center gap-2 hover:opacity-90">
+                    <span class="material-symbols-outlined text-lg">person_add</span> Add Staff
+                </button>
+            </header>
+            <div class="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-surface-container-low text-on-surface-variant text-label-sm uppercase tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4">ID</th>
+                                <th class="px-6 py-4">Name</th>
+                                <th class="px-6 py-4">Email</th>
+                                <th class="px-6 py-4">Branch</th>
+                                <th class="px-6 py-4">Created By</th>
+                                <th class="px-6 py-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staff-table-body" class="divide-y divide-slate-50">
+                            <tr><td colspan="6" class="px-6 py-8 text-center text-slate-400">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── SEARCH ACCOUNT PANEL ────────────────────────────────────── -->
+        <div id="panel-search" class="panel">
+            <header class="mb-8">
+                <h1 class="font-h1 text-h1 text-primary">Search Account</h1>
+                <p class="text-on-surface-variant mt-2">Search by name, phone, email, or ID number</p>
+            </header>
+            <div class="bg-white rounded-xl border border-[#E2E8F0] p-8">
+                <div class="flex gap-4 mb-8">
+                    <div class="flex-1 relative">
+                        <input id="search-input" type="text" placeholder="Enter name, phone, email, or ID number..."
+                            class="w-full pl-12 pr-4 py-4 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:outline-none text-base">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                    </div>
+                    <button id="search-btn" onclick="performSearch()"
+                        class="px-8 py-4 bg-primary-container text-white font-label-sm rounded-lg hover:bg-primary transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined">search</span> Search
+                    </button>
+                </div>
+                <div id="search-results"></div>
+            </div>
+        </div>
+
+        <!-- ── DEPOSIT PANEL ───────────────────────────────────────────── -->
+        <div id="panel-deposit" class="panel">
+            <header class="mb-8">
+                <h1 class="font-h1 text-h1 text-primary">Deposit Funds</h1>
+                <p class="text-on-surface-variant mt-2">Credit funds to a customer account</p>
+            </header>
+            <div class="bg-white rounded-xl border border-[#E2E8F0] p-8 max-w-xl">
+                <form id="deposit-form" class="space-y-6">
+                    <div>
+                        <label class="block text-label-sm font-label-sm text-on-surface-variant mb-2">ACCOUNT NUMBER *</label>
+                        <input id="dep-account" type="text" required placeholder="e.g. AE100001"
+                            class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:outline-none uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-label-sm font-label-sm text-on-surface-variant mb-2">AMOUNT (INR) *</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">₹</span>
+                            <input id="dep-amount" type="number" required min="1" step="0.01" placeholder="0.00"
+                                class="w-full pl-8 pr-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:outline-none">
+                        </div>
+                    </div>
+                    <div id="dep-result" class="hidden p-4 bg-slate-50 rounded-lg border"></div>
+                    <button type="submit" id="dep-btn"
+                        class="w-full py-4 bg-emerald-600 text-white font-label-sm rounded-lg hover:bg-emerald-700 flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined">add_circle</span> Confirm Deposit
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ── WITHDRAW PANEL ──────────────────────────────────────────── -->
+        <div id="panel-withdraw" class="panel">
+            <header class="mb-8">
+                <h1 class="font-h1 text-h1 text-primary">Withdraw Funds</h1>
+                <p class="text-on-surface-variant mt-2">Debit funds from a customer account</p>
+            </header>
+            <div class="bg-white rounded-xl border border-[#E2E8F0] p-8 max-w-xl">
+                <form id="withdraw-form" class="space-y-6">
+                    <div>
+                        <label class="block text-label-sm font-label-sm text-on-surface-variant mb-2">ACCOUNT NUMBER *</label>
+                        <input id="wd-account" type="text" required placeholder="e.g. AE100001"
+                            class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:outline-none uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-label-sm font-label-sm text-on-surface-variant mb-2">AMOUNT (INR) *</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">₹</span>
+                            <input id="wd-amount" type="number" required min="1" step="0.01" placeholder="0.00"
+                                class="w-full pl-8 pr-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:outline-none">
+                        </div>
+                    </div>
+                    <div id="wd-result" class="hidden p-4 bg-slate-50 rounded-lg border"></div>
+                    <button type="submit" id="wd-btn"
+                        class="w-full py-4 bg-rose-600 text-white font-label-sm rounded-lg hover:bg-rose-700 flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined">remove_circle</span> Confirm Withdrawal
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ── BALANCE PANEL ───────────────────────────────────────────── -->
+        <div id="panel-balance" class="panel">
+            <header class="mb-8">
+                <h1 class="font-h1 text-h1 text-primary">Account Balance & Card</h1>
+                <p class="text-on-surface-variant mt-2">Check balance and card validation status</p>
+            </header>
+            <div class="bg-white rounded-xl border border-[#E2E8F0] p-8 max-w-2xl">
+                <!-- Search type toggle -->
+                <div class="flex gap-2 mb-4">
+                    <button id="bal-tab-acc" onclick="setBalTab('acc')"
+                        class="px-4 py-2 rounded-lg text-sm font-semibold bg-primary-container text-white">
+                        By Account Number
+                    </button>
+                    <button id="bal-tab-card" onclick="setBalTab('card')"
+                        class="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">
+                        By Card Number
+                    </button>
+                </div>
+                <div class="flex gap-4 mb-6">
+                    <input id="bal-account" type="text" placeholder="Enter Account Number (e.g. AE100001)"
+                        class="flex-1 px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:outline-none uppercase"
+                        onkeydown="if(event.key==='Enter') checkBalance()">
+                    <button onclick="checkBalance()" class="px-6 py-3 bg-primary-container text-white font-label-sm rounded-lg hover:bg-primary flex items-center gap-2">
+                        <span class="material-symbols-outlined text-base">search</span> Check
+                    </button>
+                </div>
+                <div id="balance-result"></div>
+            </div>
+        </div>
+
+        <!-- ── TRANSACTIONS PANEL ──────────────────────────────────────── -->
+        <div id="panel-transactions" class="panel">
+            <header class="mb-8">
+                <h1 class="font-h1 text-h1 text-primary">Transaction History</h1>
+                <p class="text-on-surface-variant mt-2">View recent transactions across all accounts</p>
+            </header>
+            <div class="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
+                <div class="p-6 border-b flex items-center gap-4">
+                    <input id="tx-filter-account" type="text" placeholder="Filter by account number (leave blank for all)"
+                        class="flex-1 px-4 py-2 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:outline-none text-sm uppercase">
+                    <button onclick="loadTransactions()" class="px-4 py-2 bg-primary-container text-white text-sm font-semibold rounded-lg">Filter</button>
+                </div>
+                <div id="tx-table-wrap" class="overflow-x-auto"></div>
+            </div>
+        </div>
+
+        <!-- ── CLOSE ACCOUNT PANEL ────────────────────────────────────── -->
+        <div id="panel-close-account" class="panel">
+            <header class="mb-8">
+                <h1 class="font-h1 text-h1 text-primary text-red-600">Close Account</h1>
+                <p class="text-on-surface-variant mt-2">Permanently close a customer account. This action cannot be undone.</p>
+            </header>
+            <div class="bg-white rounded-xl border border-red-200 p-8 max-w-xl">
+                <div class="p-4 bg-red-50 border border-red-200 rounded-lg mb-6 flex items-start gap-3">
+                    <span class="material-symbols-outlined text-red-500 mt-0.5">warning</span>
+                    <div class="text-sm text-red-700">
+                        <strong>Warning:</strong> Closing an account will also block the associated card. The account balance should be zero before closing.
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-label-sm font-label-sm text-on-surface-variant mb-2">ACCOUNT NUMBER *</label>
+                        <input id="close-account-num" type="text" placeholder="e.g. AE100001"
+                            class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-red-300 focus:outline-none uppercase">
+                    </div>
+                    <div id="close-verify-result"></div>
+                    <div class="flex gap-4">
+                        <button onclick="verifyCloseAccount()"
+                            class="px-6 py-3 border-2 border-slate-300 text-slate-600 font-label-sm rounded-lg hover:bg-slate-50">
+                            Verify Account
+                        </button>
+                        <button id="close-confirm-btn" onclick="confirmCloseAccount()" disabled
+                            class="px-6 py-3 bg-red-600 text-white font-label-sm rounded-lg hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed">
+                            Close Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- Reject Reason Modal -->
+<div id="reject-modal" class="modal-overlay">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-md mx-4">
+        <h3 class="font-h3 text-primary mb-4">Reject Request</h3>
+        <p class="text-on-surface-variant text-sm mb-4">Please provide a reason for rejection:</p>
+        <textarea id="reject-reason" rows="3" placeholder="e.g. Incomplete documentation..."
+            class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-red-300 focus:outline-none text-sm mb-4"></textarea>
+        <div class="flex gap-3">
+            <button onclick="submitReject()" class="flex-1 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700">Reject Request</button>
+            <button onclick="closeRejectModal()" class="flex-1 py-3 border border-slate-200 text-slate-600 font-semibold rounded-lg hover:bg-slate-50">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile sidebar overlay -->
+<div id="sidebar-overlay" class="hidden fixed inset-0 bg-black/30 z-40 lg:hidden" onclick="toggleSidebar()"></div>
+
+<script>
+// Session check
+const session = JSON.parse(localStorage.getItem('ae_session') || 'null');
+if (!session || session.user.role !== 'admin') {
+    window.location.href = '../index.html';
+}
+
+// Set user info
+if (session) {
+    const initials = session.user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('user-avatar').textContent = initials;
+    document.getElementById('sidebar-avatar').textContent = initials;
+    document.getElementById('user-name').textContent = session.user.name;
+    document.getElementById('sidebar-name').textContent = session.user.name;
+}
+
+function logout() {
+    localStorage.removeItem('ae_session');
+    window.location.href = '../index.html';
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    sidebar.classList.toggle('hidden');
+    sidebar.classList.toggle('lg:flex');
+    overlay.classList.toggle('hidden');
+}
+
+// ─── Panel Navigation ──────────────────────────────────────────────────────
+
+function showPanel(name) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    const navEl = document.getElementById('nav-' + name);
+    if (navEl) navEl.classList.add('active');
+
+    // Load data when panel opens
+    if (name === 'dashboard') loadDashboard();
+    if (name === 'requests') loadRequests('pending');
+    if (name === 'staff-list') loadStaffList();
+    if (name === 'transactions') loadTransactions();
+}
+
+// ─── Dashboard ─────────────────────────────────────────────────────────────
+
+async function loadDashboard() {
+    const r = await API.getStats();
+    if (r.ok) {
+        const s = r.data.stats;
+        const pending = s.pending_requests || 0;
+        document.getElementById('stat-tx').textContent  = s.total_transactions || 0;
+        document.getElementById('stat-dep').textContent = formatCurrency(s.total_deposits || 0);
+        document.getElementById('stat-wd').textContent  = formatCurrency(s.total_withdrawals || 0);
+        document.getElementById('stat-req').textContent = pending;
+        document.getElementById('stat-pending-badge').textContent = pending + ' PENDING';
+        document.getElementById('pending-count').textContent = pending;
+    } else {
+        // Show zeros on error — don't leave dashes
+        ['stat-tx','stat-req'].forEach(id => {
+            document.getElementById(id).textContent = '0';
+        });
+        document.getElementById('stat-dep').textContent = formatCurrency(0);
+        document.getElementById('stat-wd').textContent  = formatCurrency(0);
+        document.getElementById('stat-pending-badge').textContent = '0 PENDING';
+        document.getElementById('pending-count').textContent = '0';
+    }
+    // Load recent transactions
+    const tr = await API.getTransactions();
+    if (tr.ok) renderTxTable(tr.data.transactions, 'dashboard-tx-list');
+}
+
+function renderTxTable(txs, containerId) {
+    const el = document.getElementById(containerId);
+    if (!txs || txs.length === 0) {
+        el.innerHTML = `<div class="p-16 text-center">
+        <span class="material-symbols-outlined text-5xl text-slate-200 block mb-3">receipt_long</span>
+        <p class="text-slate-500 font-semibold">No transactions yet</p>
+        <p class="text-slate-400 text-sm mt-1">Transactions will appear here after deposits or withdrawals are made</p>
+    </div>`;
+        return;
+    }
+    const typeStyle = { deposit:'text-emerald-600', withdraw:'text-rose-600', initial_deposit:'text-blue-600' };
+    el.innerHTML = `<table class="w-full text-left">
+        <thead class="bg-surface-container-low text-on-surface-variant text-xs uppercase tracking-wider">
+            <tr>
+                <th class="px-6 py-3">Ref</th>
+                <th class="px-6 py-3">Account</th>
+                <th class="px-6 py-3">Holder</th>
+                <th class="px-6 py-3">Type</th>
+                <th class="px-6 py-3 text-right">Amount</th>
+                <th class="px-6 py-3 text-right">Balance After</th>
+                <th class="px-6 py-3">Staff</th>
+                <th class="px-6 py-3">Date</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+            ${txs.map(tx => `<tr class="hover:bg-slate-50 transition-colors">
+                <td class="px-6 py-4 text-xs font-mono text-slate-500">#TXN-${tx.id.toString().padStart(5,'0')}</td>
+                <td class="px-6 py-4 text-sm font-semibold">${tx.account_number}</td>
+                <td class="px-6 py-4 text-sm">${tx.holder_name || '—'}</td>
+                <td class="px-6 py-4 text-sm font-bold ${typeStyle[tx.type]||''} capitalize">${tx.type.replace('_',' ')}</td>
+                <td class="px-6 py-4 text-right text-sm font-bold ${typeStyle[tx.type]||''}">${formatCurrency(tx.amount)}</td>
+                <td class="px-6 py-4 text-right text-sm font-mono">${formatCurrency(tx.balance_after)}</td>
+                <td class="px-6 py-4 text-sm text-slate-600">
+                    <span class="flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm text-slate-400">badge</span>
+                        ${tx.staff_name || tx.performed_by || '—'}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-xs text-slate-400">${tx.created_at}</td>
+            </tr>`).join('')}
+        </tbody>
+    </table>`;
+}
+
+// ─── Create Staff ──────────────────────────────────────────────────────────
+
+document.getElementById('create-staff-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errEl = document.getElementById('staff-form-error');
+    errEl.classList.add('hidden');
+    const btn = document.getElementById('create-staff-btn');
+    btn.innerHTML = '<span class="spinner"></span> Creating...';
+    btn.disabled = true;
+
+    const r = await API.createStaff({
+        name:     document.getElementById('sf-name').value.trim(),
+        email:    document.getElementById('sf-email').value.trim(),
+        password: document.getElementById('sf-password').value,
+        branch:   document.getElementById('sf-branch').value,
+    });
+
+    btn.innerHTML = '<span class="material-symbols-outlined text-lg">person_add</span> Create Staff Account';
+    btn.disabled = false;
+
+    if (r.ok) {
+        showToast('Staff account created successfully!', 'success');
+        document.getElementById('create-staff-form').reset();
+        showPanel('staff-list');
+    } else {
+        errEl.textContent = r.data.error || 'Failed to create staff';
+        errEl.classList.remove('hidden');
+    }
+});
+
+// ─── Staff List ────────────────────────────────────────────────────────────
+
+async function loadStaffList() {
+    const tbody = document.getElementById('staff-table-body');
+    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-slate-400">Loading...</td></tr>';
+    const r = await API.getStaff();
+    if (!r.ok) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-red-400">${r.data.error}</td></tr>`;
+        return;
+    }
+    const staff = r.data.staff;
+    if (!staff.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-16 text-center">
+        <span class="material-symbols-outlined text-5xl text-slate-200 block mb-3">group</span>
+        <p class="text-slate-500 font-semibold">No staff members yet</p>
+        <p class="text-slate-400 text-sm mt-1">Use "Create Staff" to add your first staff member</p>
+    </td></tr>`;
+        return;
+    }
+    tbody.innerHTML = staff.map(s => `<tr class="hover:bg-slate-50">
+        <td class="px-6 py-4 text-sm font-mono text-slate-500">#${s.id}</td>
+        <td class="px-6 py-4 text-sm font-semibold text-primary">${s.name}</td>
+        <td class="px-6 py-4 text-sm text-slate-600">${s.email}</td>
+        <td class="px-6 py-4 text-sm">${s.branch || '—'}</td>
+        <td class="px-6 py-4 text-xs text-slate-400">${s.created_by || '—'}</td>
+        <td class="px-6 py-4">
+            <button onclick="deleteStaff(${s.id}, '${s.name.replace(/'/g,"\\\'")}')"
+                class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 text-xs font-semibold rounded-lg hover:bg-red-100 flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">delete</span> Remove
+            </button>
+        </td>
+    </tr>`).join('');
+}
+
+async function deleteStaff(id, name) {
+    if (!confirm(`Are you sure you want to remove staff member "${name}"? This cannot be undone.`)) return;
+    const r = await API.deleteStaff(id);
+    if (r.ok) {
+        showToast(`Staff member "${name}" has been removed.`, 'info');
+        loadStaffList();
+    } else {
+        showToast(r.data.error || 'Failed to remove staff', 'error');
+    }
+}
+
+// ─── Account Requests ──────────────────────────────────────────────────────
+
+let currentRejectId = null;
+
+async function loadRequests(filter = 'pending') {
+    document.getElementById('filter-pending').className = filter === 'pending'
+        ? 'px-4 py-2 bg-primary-container text-white text-sm font-semibold rounded-lg'
+        : 'px-4 py-2 border border-slate-200 text-slate-600 text-sm font-semibold rounded-lg hover:bg-slate-50';
+    document.getElementById('filter-all').className = filter === 'all'
+        ? 'px-4 py-2 bg-primary-container text-white text-sm font-semibold rounded-lg'
+        : 'px-4 py-2 border border-slate-200 text-slate-600 text-sm font-semibold rounded-lg hover:bg-slate-50';
+
+    const container = document.getElementById('requests-list');
+    container.innerHTML = '<p class="text-slate-400 text-sm">Loading...</p>';
+    const r = await API.getRequests(filter);
+    if (!r.ok) { container.innerHTML = `<p class="text-red-400">${r.data.error}</p>`; return; }
+    const reqs = r.data.requests;
+    if (!reqs.length) {
+        container.innerHTML = `<div class="bg-white rounded-xl border border-[#E2E8F0] p-16 text-center">
+        <span class="material-symbols-outlined text-5xl text-slate-200 block mb-3">pending_actions</span>
+        <p class="text-slate-500 font-semibold">No account requests</p>
+        <p class="text-slate-400 text-sm mt-1">Account opening requests submitted by staff will appear here</p>
+    </div>`;
+        return;
+    }
+    const statusColor = { pending:'amber', approved:'green', rejected:'red' };
+    container.innerHTML = reqs.map(req => {
+        const c = statusColor[req.status] || 'gray';
+        return `<div class="bg-white rounded-xl border border-[#E2E8F0] p-6">
+            <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-3">
+                        <h3 class="font-h3 text-primary text-lg">${req.holder_name}</h3>
+                        <span class="px-2 py-0.5 rounded-full text-xs font-bold uppercase bg-${c}-100 text-${c}-700 border border-${c}-200">${req.status}</span>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div><span class="text-slate-400 text-xs block">PHONE</span>${req.phone || '—'}</div>
+                        <div><span class="text-slate-400 text-xs block">EMAIL</span>${req.email || '—'}</div>
+                        <div><span class="text-slate-400 text-xs block">ID TYPE</span>${req.id_type || '—'}</div>
+                        <div><span class="text-slate-400 text-xs block">ID NUMBER</span>${req.id_number || '—'}</div>
+                        <div><span class="text-slate-400 text-xs block">ACCOUNT TYPE</span>${req.account_type || '—'}</div>
+                        <div><span class="text-slate-400 text-xs block">INITIAL DEPOSIT</span>${formatCurrency(req.initial_deposit || 0)}</div>
+                        <div><span class="text-slate-400 text-xs block">REQUESTED BY</span>${req.requested_by || '—'}</div>
+                        <div><span class="text-slate-400 text-xs block">SUBMITTED</span>${req.created_at || '—'}</div>
+                    </div>
+                    ${req.address ? `<div class="mt-3 text-sm"><span class="text-slate-400 text-xs block">ADDRESS</span>${req.address}</div>` : ''}
+                    ${req.rejection_reason ? `<div class="mt-2 p-3 bg-red-50 rounded text-sm text-red-700"><strong>Rejection Reason:</strong> ${req.rejection_reason}</div>` : ''}
+                </div>
+                ${req.status === 'pending' ? `
+                <div class="flex flex-col gap-2 shrink-0">
+                    <button onclick="approveRequest(${req.id})"
+                        class="px-6 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">check_circle</span> Approve
+                    </button>
+                    <button onclick="openRejectModal(${req.id})"
+                        class="px-6 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">cancel</span> Reject
+                    </button>
+                </div>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function approveRequest(id) {
+    const r = await API.approveRequest(id);
+    if (r.ok) {
+        showToast('Request approved! Account and card created.', 'success');
+        loadRequests('pending');
+        loadDashboard();
+    } else {
+        showToast(r.data.error || 'Failed to approve', 'error');
+    }
+}
+
+function openRejectModal(id) {
+    currentRejectId = id;
+    document.getElementById('reject-reason').value = '';
+    document.getElementById('reject-modal').classList.add('open');
+}
+
+function closeRejectModal() {
+    document.getElementById('reject-modal').classList.remove('open');
+    currentRejectId = null;
+}
+
+async function submitReject() {
+    if (!currentRejectId) return;
+    const reason = document.getElementById('reject-reason').value.trim() || 'No reason provided';
+    const r = await API.rejectRequest(currentRejectId, reason);
+    if (r.ok) {
+        showToast('Request rejected.', 'info');
+        closeRejectModal();
+        loadRequests('pending');
+    } else {
+        showToast(r.data.error || 'Failed to reject', 'error');
+    }
+}
+
+// ─── Search ────────────────────────────────────────────────────────────────
+
+document.getElementById('search-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') performSearch();
+});
+
+async function performSearch() {
+    const q = document.getElementById('search-input').value.trim();
+    if (!q) { showToast('Please enter a search term', 'warn'); return; }
+    const r = await API.searchAccounts(q);
+    const container = document.getElementById('search-results');
+    if (!r.ok) { container.innerHTML = `<p class="text-red-400">${r.data.error}</p>`; return; }
+    const accs = r.data.accounts;
+    if (!accs.length) {
+        container.innerHTML = `<div class="p-16 text-center">
+        <span class="material-symbols-outlined text-5xl text-slate-200 block mb-3">search_off</span>
+        <p class="text-slate-500 font-semibold">No accounts found</p>
+        <p class="text-slate-400 text-sm mt-1">Try a different name, phone number, email or ID</p>
+    </div>`;
+        return;
+    }
+    container.innerHTML = `<p class="text-sm text-slate-400 mb-4">${r.data.count} result(s) found</p>
+    <div class="space-y-3">
+        ${accs.map(a => `<div class="border border-[#E2E8F0] rounded-xl p-5 hover:bg-slate-50 transition-colors">
+            <div class="flex items-center justify-between mb-3">
+                <div>
+                    <h4 class="font-semibold text-primary text-base">${a.holder_name}</h4>
+                    <p class="text-xs text-slate-400 font-mono">${a.account_number}</p>
+                </div>
+                ${statusBadge(a.status)}
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                <div><span class="text-xs text-slate-400 block">PHONE</span>${a.phone || '—'}</div>
+                <div><span class="text-xs text-slate-400 block">EMAIL</span>${a.email || '—'}</div>
+                <div><span class="text-xs text-slate-400 block">ID TYPE</span>${a.id_type || '—'}</div>
+                <div><span class="text-xs text-slate-400 block">ID NUMBER</span>${a.id_number || '—'}</div>
+                <div><span class="text-xs text-slate-400 block">ACCOUNT TYPE</span>${a.account_type || '—'}</div>
+                <div><span class="text-xs text-slate-400 block">BALANCE</span><strong class="text-primary">${formatCurrency(a.balance)}</strong></div>
+                ${a.address ? `<div class="col-span-2"><span class="text-xs text-slate-400 block">ADDRESS</span>${a.address}</div>` : ''}
+            </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ─── Deposit ──────────────────────────────────────────────────────────────
+
+document.getElementById('deposit-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const accNum = document.getElementById('dep-account').value.trim().toUpperCase();
+    const amount = parseFloat(document.getElementById('dep-amount').value);
+    const resEl  = document.getElementById('dep-result');
+    const btn    = document.getElementById('dep-btn');
+    resEl.classList.add('hidden');
+
+    if (!accNum || !amount || amount <= 0) { showToast('Please fill all fields correctly', 'warn'); return; }
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Processing...';
+
+    const r = await API.deposit(accNum, amount);
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-symbols-outlined">add_circle</span> Confirm Deposit';
+
+    if (r.ok) {
+        resEl.className = 'p-4 bg-emerald-50 rounded-lg border border-emerald-200 text-emerald-800';
+        resEl.innerHTML = `✅ <strong>Deposit Successful!</strong><br>Account: ${accNum} | New Balance: <strong>${formatCurrency(r.data.new_balance)}</strong>`;
+        resEl.classList.remove('hidden');
+        document.getElementById('deposit-form').reset();
+        showToast(`Deposited ${formatCurrency(amount)} to ${accNum}`, 'success');
+    } else {
+        resEl.className = 'p-4 bg-red-50 rounded-lg border border-red-200 text-red-700';
+        resEl.innerHTML = `❌ ${r.data.error || 'Deposit failed'}`;
+        resEl.classList.remove('hidden');
+    }
+});
+
+// ─── Withdraw ─────────────────────────────────────────────────────────────
+
+document.getElementById('withdraw-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const accNum = document.getElementById('wd-account').value.trim().toUpperCase();
+    const amount = parseFloat(document.getElementById('wd-amount').value);
+    const resEl  = document.getElementById('wd-result');
+    const btn    = document.getElementById('wd-btn');
+    resEl.classList.add('hidden');
+
+    if (!accNum || !amount || amount <= 0) { showToast('Please fill all fields correctly', 'warn'); return; }
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Processing...';
+
+    const r = await API.withdraw(accNum, amount);
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-symbols-outlined">remove_circle</span> Confirm Withdrawal';
+
+    if (r.ok) {
+        resEl.className = 'p-4 bg-emerald-50 rounded-lg border border-emerald-200 text-emerald-800';
+        resEl.innerHTML = `✅ <strong>Withdrawal Successful!</strong><br>Account: ${accNum} | New Balance: <strong>${formatCurrency(r.data.new_balance)}</strong>`;
+        resEl.classList.remove('hidden');
+        document.getElementById('withdraw-form').reset();
+        showToast(`Withdrew ${formatCurrency(amount)} from ${accNum}`, 'success');
+    } else {
+        resEl.className = 'p-4 bg-red-50 rounded-lg border border-red-200 text-red-700';
+        resEl.innerHTML = `❌ ${r.data.error || 'Withdrawal failed'}`;
+        resEl.classList.remove('hidden');
+    }
+});
+
+// ─── Balance / Card ────────────────────────────────────────────────────────
+
+let balSearchByCard = false;
+function setBalTab(tab) {
+    balSearchByCard = (tab === 'card');
+    const inp = document.getElementById('bal-account');
+    const accBtn  = document.getElementById('bal-tab-acc');
+    const cardBtn = document.getElementById('bal-tab-card');
+    if (balSearchByCard) {
+        inp.placeholder = 'Enter 16-digit Card Number (e.g. 1234 5678 9012 3456)';
+        inp.classList.remove('uppercase');
+        cardBtn.className = 'px-4 py-2 rounded-lg text-sm font-semibold bg-primary-container text-white';
+        accBtn.className  = 'px-4 py-2 rounded-lg text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200';
+    } else {
+        inp.placeholder = 'Enter Account Number (e.g. AE100001)';
+        inp.classList.add('uppercase');
+        accBtn.className  = 'px-4 py-2 rounded-lg text-sm font-semibold bg-primary-container text-white';
+        cardBtn.className = 'px-4 py-2 rounded-lg text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200';
+    }
+    document.getElementById('balance-result').innerHTML = '';
+}
+
+async function checkBalance() {
+    const val = document.getElementById('bal-account').value.trim();
+    const accNum = balSearchByCard ? val : val.toUpperCase();
+    if (!accNum) { showToast(balSearchByCard ? 'Enter a card number' : 'Enter an account number', 'warn'); return; }
+    const r = await API.getBalance(accNum, balSearchByCard);
+    const el = document.getElementById('balance-result');
+    if (!r.ok) {
+        el.innerHTML = `<div class="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">❌ ${r.data.error}</div>`;
+        return;
+    }
+    const { account, card } = r.data;
+    const cardHtml = card ? `
+        <div class="mt-6 p-5 bg-[#00234b] text-white rounded-xl">
+            <div class="flex justify-between items-start mb-6">
+                <div><p class="text-xs opacity-60 uppercase tracking-wider">AE Global Bank</p><p class="font-bold text-lg mt-1">${account.holder_name}</p></div>
+                <span class="material-symbols-outlined text-3xl opacity-60">credit_card</span>
+            </div>
+            <p class="font-mono text-lg tracking-widest mb-4">${card.card_number || card.masked_number}</p>
+            <div class="flex justify-between items-end">
+                <div><p class="text-xs opacity-60">EXPIRY</p><p class="font-semibold">${card.expiry}</p></div>
+                <div class="text-right">
+                    <p class="text-xs opacity-60">TYPE</p><p class="font-semibold capitalize">${card.type}</p>
+                </div>
+                <span class="px-2 py-0.5 rounded text-xs font-bold uppercase ${card.valid ? 'bg-emerald-400 text-white' : 'bg-red-400 text-white'}">${card.status}</span>
+            </div>
+        </div>` : '<p class="mt-4 text-sm text-slate-400">No card linked to this account.</p>';
+
+    el.innerHTML = `<div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="p-4 bg-slate-50 rounded-xl border">
+            <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Account Number</p>
+            <p class="font-bold text-primary">${account.account_number}</p>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-xl border">
+            <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Status</p>
+            ${statusBadge(account.status)}
+        </div>
+        <div class="p-4 bg-slate-50 rounded-xl border">
+            <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Account Holder</p>
+            <p class="font-semibold text-primary">${account.holder_name || '—'}</p>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-xl border">
+            <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Account Type</p>
+            <p class="font-semibold text-primary capitalize">${account.account_type}</p>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-xl border">
+            <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Phone</p>
+            <p class="font-semibold">${account.phone || '—'}</p>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-xl border">
+            <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Email</p>
+            <p class="font-semibold">${account.email || '—'}</p>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-xl border">
+            <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">ID</p>
+            <p class="font-semibold">${account.id_type || ''}: ${account.id_number || '—'}</p>
+        </div>
+        <div class="p-6 bg-emerald-50 rounded-xl border border-emerald-200">
+            <p class="text-xs text-emerald-600 uppercase tracking-wider mb-1">Current Balance</p>
+            <p class="font-bold text-2xl text-emerald-700">${formatCurrency(account.balance)}</p>
+        </div>
+    </div>
+    <h4 class="font-semibold text-primary mb-2">Card Details</h4>
+    ${cardHtml}`;
+}
+
+// ─── Transactions ──────────────────────────────────────────────────────────
+
+async function loadTransactions() {
+    const accNum = document.getElementById('tx-filter-account').value.trim().toUpperCase();
+    const wrap = document.getElementById('tx-table-wrap');
+    wrap.innerHTML = '<div class="p-12 text-center"><span class="material-symbols-outlined text-4xl text-slate-200 block mb-3">receipt_long</span><p class="text-slate-400 text-sm">No transactions yet</p><p class="text-slate-300 text-xs mt-1">Transactions will appear here once staff perform deposits or withdrawals</p></div>';
+    const r = await API.getTransactions(accNum);
+    if (!r.ok) { wrap.innerHTML = `<p class="p-6 text-red-400">${r.data.error}</p>`; return; }
+    renderTxTable(r.data.transactions, 'tx-table-wrap');
+}
+
+// ─── Close Account ─────────────────────────────────────────────────────────
+
+async function verifyCloseAccount() {
+    const accNum = document.getElementById('close-account-num').value.trim().toUpperCase();
+    if (!accNum) { showToast('Enter an account number', 'warn'); return; }
+    const r = await API.getBalance(accNum);
+    const el = document.getElementById('close-verify-result');
+    if (!r.ok) {
+        el.innerHTML = `<div class="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">❌ ${r.data.error}</div>`;
+        document.getElementById('close-confirm-btn').disabled = true;
+        return;
+    }
+    const { account } = r.data;
+    el.innerHTML = `<div class="p-4 bg-slate-50 border rounded-lg text-sm space-y-2">
+        <div class="flex justify-between"><span class="text-slate-500">Account Number:</span><strong>${account.account_number}</strong></div>
+        <div class="flex justify-between"><span class="text-slate-500">Account Holder:</span><strong>${account.holder_name || '—'}</strong></div>
+        <div class="flex justify-between"><span class="text-slate-500">Phone:</span><span>${account.phone || '—'}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Email:</span><span>${account.email || '—'}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">ID:</span><span>${account.id_type ? account.id_type + ': ' + account.id_number : '—'}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Status:</span>${statusBadge(account.status)}</div>
+        <div class="flex justify-between"><span class="text-slate-500">Balance:</span><strong class="text-red-600">${formatCurrency(account.balance)}</strong></div>
+        ${account.balance > 0 ? '<p class="text-amber-600 text-xs">⚠️ Balance is not zero. Please withdraw remaining funds first.</p>' : ''}
+    </div>`;
+    document.getElementById('close-confirm-btn').disabled = (account.status === 'closed');
+}
+
+async function confirmCloseAccount() {
+    const accNum = document.getElementById('close-account-num').value.trim().toUpperCase();
+    if (!accNum) return;
+    if (!confirm(`Are you absolutely sure you want to close account ${accNum}? This cannot be undone.`)) return;
+    const r = await API.closeAccount(accNum);
+    if (r.ok) {
+        showToast(`Account ${accNum} has been closed.`, 'info');
+        document.getElementById('close-account-num').value = '';
+        document.getElementById('close-verify-result').innerHTML = '';
+        document.getElementById('close-confirm-btn').disabled = true;
+    } else {
+        showToast(r.data.error || 'Failed to close account', 'error');
+    }
+}
+
+// Init
+loadDashboard();
+</script>
+</body>
+</html>
