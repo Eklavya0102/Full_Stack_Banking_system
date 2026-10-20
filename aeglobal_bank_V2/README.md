@@ -90,6 +90,9 @@ The server starts on **port 8080** by default.
 
 ---
 
+#frontend
+python -m http.server 5500 
+
 ## Accessing the Application
 
 | URL | Description |
@@ -195,35 +198,11 @@ SQLite database file: **banking.db** (auto-created in working directory on first
 
 ---
 
-## Bug Fixes Applied
-
-| # | Fix | Description |
-|---|-----|-------------|
-| 1 | SQLITE_TRANSIENT | All getter().c_str() bindings changed from SQLITE_STATIC to SQLITE_TRANSIENT — prevents dangling pointer UB that caused null/garbage data saved to DB |
-| 2 | Card number format | Cards generated and stored as XXXX XXXX XXXX XXXX |
-| 3 | Staff delete | Admin can remove staff with confirmation dialog |
-| 4 | Address persisted | Address stored in accounts table on approval |
-| 5 | Full data on approval | All holder fields (phone, email, ID, address) stored and shown everywhere |
-| 6 | Staff name in transactions | performed_by email resolved to full name via JOIN on users table |
-| 7 | Card number search | Search and balance lookup both accept card number input |
-| 8 | Sidebar fixed | Sidebar is now sticky with fixed viewport height — does not stretch |
-| 9 | Dashboard tx limit | Dashboard shows max 6 transactions; section is vertically scrollable |
-
----
-
-## UI Layout Notes
-
-- **Sidebar**: `sticky top-16 h-[calc(100vh-64px)] overflow-y-auto` — fixed to viewport, scrolls independently
-- **Main content**: `h-[calc(100vh-64px)] overflow-y-auto` — scrolls independently of sidebar
-- **Dashboard tx section**: `max-height: 360px; overflow-y: auto` — capped at ~6 rows, scrollable
-- **Header**: `sticky top-0 z-50` — always visible at top
-=======
-
 LICENSE:
 
 MIT License
 
-Copyright (c) [year] [your name]
+Copyright (c) 2026 Eklavya Chaudhary
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

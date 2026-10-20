@@ -1,0 +1,3 @@
+D:/Projects/Banking_sys/Full_Stack/aeglobal_bank_V2/build/CMakeFiles/banking_server.dir
+D:/Projects/Banking_sys/Full_Stack/aeglobal_bank_V2/build/CMakeFiles/edit_cache.dir
+D:/Projects/Banking_sys/Full_Stack/aeglobal_bank_V2/build/CMakeFiles/rebuild_cache.dir
